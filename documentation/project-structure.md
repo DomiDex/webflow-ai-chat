@@ -83,29 +83,92 @@ webflow-ai-chat/
       ```
     - You should see a JSON response like `{"response":"A Netlify function is..."}`.
 
-## 5. Deployment to Netlify
+## 5. Deployment & Configuration
 
-1.  **Set Environment Variable in Netlify:**
-    - Log in to `app.netlify.com`.
-    - Go to your site (`webflow-ai-chat`) -> `Site configuration` -> `Build & deploy` -> `Environment`.
-    - Add an environment variable:
-      - **Key:** `GOOGLE_AI_API_KEY`
-      - **Value:** Your actual Google AI API key (paste the key value directly, no quotes).
-    - Save. This is essential for the _deployed_ function to work.
-2.  **Deploy:**
-    - **Method 1 (Recommended): Git Push:** If you connected your Git repository (GitHub, GitLab etc.) to Netlify, simply `git push` your committed changes to the main branch. Netlify will automatically build and deploy.
-    - **Method 2 (CLI):**
-      - Open Cursor's terminal in the project root.
-      - Run: `netlify deploy --prod` (or `npx netlify deploy --prod` if `netlify` command is not found globally).
-      - **Important:** Ensure your "Publish directory" in Netlify's build settings (see Step 1 UI location) is set correctly (e.g., `/`, blank, or base directory, **not** an incorrect path like a Git URL). If you previously deployed with an incorrect path, fix it in the UI first.
-3.  **Deployed Endpoint:** Your live function will be available at `https://webflow-ai-chat.netlify.app/.netlify/functions/chat`.
+This section covers preparing your code, deploying it to Netlify, configuring environment variables, and testing the live function.
+
+### 5.1 Git Preparation (Steps 46-50)
+
+1.  **Stage Changes:** Add all your local changes to Git's staging area.
+    ```bash
+    git add .
+    ```
+2.  **Commit Changes:** Save your staged changes with a descriptive message.
+    ```bash
+    git commit -m "feat: Add chat function and related services"
+    ```
+    _(Adjust the commit message as needed)_
+3.  **Create Remote Repository (Step 48):**
+    - Go to your Git hosting provider (GitHub, GitLab, Bitbucket).
+    - Create a new repository (e.g., `webflow-ai-chat`).
+    - **Do not** initialize it with a README, .gitignore, or license (you have these locally).
+    - Copy the repository URL (e.g., `https://github.com/your-username/your-repo-name.git`).
+4.  **Add Remote Origin (Step 49):** Link your local repository to the remote one. Replace `<your_repo_url>` with the URL copied above.
+    ```bash
+    git remote add origin <your_repo_url>
+    ```
+5.  **Push to Remote (Step 50):** Upload your local commits to the remote repository. The `-u` flag sets up tracking for future pushes/pulls.
+    ```bash
+    git push -u origin main
+    ```
+    _(Use `master` if that's your default branch name)_
+
+### 5.2 Netlify Site Setup (Steps 51-55)
+
+1.  **Log in to Netlify:** Go to [app.netlify.com](https://app.netlify.com/).
+2.  **Add New Site:** Click "Add new site" -> "Import an existing project".
+3.  **Select Git Provider & Repo:** Choose your provider (GitHub, etc.), authorize Netlify, and select the repository you just pushed to.
+4.  **Configure Build Settings:**
+    - Netlify usually auto-detects settings.
+    - **Crucially, verify the "Functions directory"**. It should be `netlify/functions`.
+    - The "Build command" can often be left blank if you only have functions.
+    - The "Publish directory" should typically be the project root (`.`) or empty.
+5.  **Deploy Site:** Click "Deploy site". Netlify will fetch your code, build the function (using `esbuild` as per `netlify.toml`), and deploy.
+6.  **Wait for Deployment:** Monitor the deployment progress in the Netlify dashboard ("Deploys" tab).
+
+### 5.3 Environment Variables Configuration (Steps 56-61)
+
+1.  **Navigate to Environment Variables:** In your deployed site's dashboard on Netlify, go to `Site configuration` -> `Build & deploy` -> `Environment variables`.
+2.  **Add API Key:**
+    - Click "Add variable".
+    - **Key:** `GOOGLE_AI_API_KEY`
+    - **Value:** Your actual Google AI API key (paste the key value directly, no quotes).
+    - **Scope:** Ensure the scope includes "Functions" (this is usually the default and necessary for the deployed function to access the key).
+    - Click "Save".
+3.  **Verify Variable:** Check the list to ensure `GOOGLE_AI_API_KEY` is listed correctly.
+4.  **Trigger Redeploy:** Go to the "Deploys" tab and trigger a new deployment (e.g., "Trigger deploy" -> "Deploy site"). This ensures the function runs with the newly added environment variable.
+5.  **Wait for Redeployment:** Monitor the deployment status until it's successful.
+
+### 5.4 Testing the Deployed Function (Steps 62-64)
+
+1.  **Find Function URL:**
+    - Go to the "Functions" tab in your Netlify site dashboard.
+    - Click on your function name (e.g., `chat`).
+    - Copy the "Function URL" (e.g., `https://your-site-name.netlify.app/.netlify/functions/chat`).
+2.  **Test with `curl` or Postman:** Send a POST request to the live function URL.
+
+    ```bash
+    # Replace with your actual function URL
+    FUNCTION_URL="https://your-site-name.netlify.app/.netlify/functions/chat"
+
+    curl -X POST "$FUNCTION_URL" \
+         -H "Content-Type: application/json" \
+         -d '{"data": {"user-message": "Test message to deployed function."}}'
+    ```
+
+    - Check if you receive the expected JSON response (e.g., `{"response":"AI response..."}`).
+
+3.  **Check Function Logs:**
+    - In the Netlify dashboard, go to the "Functions" tab and click your function name.
+    - Review the logs for any errors or console output (including the `console.log` statements from `ai.service.ts`). This is crucial for debugging, especially API key issues.
 
 ## 6. Important Considerations
 
 - **API Key Security:** Never commit your `.env.local` file or hardcode API keys directly in your source code. Use environment variables set in the Netlify UI for deployment.
-- **Error Handling:** The current error handling is basic. For production, consider more robust logging and error reporting.
+- **Error Handling:** The current error handling in `chat.ts` and `ai.service.ts` is basic. For production, consider more robust logging (e.g., using a logging service) and error reporting.
 - **Context Management:** This setup is currently stateless. Each request to the AI is independent. For a true conversational experience, you would need to implement logic to manage and send conversation history with each request (likely requiring modifications to `chat.ts` and `ai.service.ts`, and potentially storing history).
 - **Webflow Integration:** This backend needs to be called from your Webflow site. You'll need to write custom JavaScript in Webflow to:
-  - Capture form input.
-  - Send a POST request (using `fetch`) to the deployed function URL.
-  - Handle the JSON response and display it in your chat UI.
+  - Capture user input from a form.
+  - Send a POST request (using `fetch`) to your deployed function URL (found in step 5.4.1).
+  - Handle the JSON response (the `response` field) and display the AI's message in your chat UI.
+- **CORS:** The `Access-Control-Allow-Origin: '*'` header in `chat.ts` is permissive. For production, restrict this to your specific Webflow domain (e.g., `Access-Control-Allow-Origin: 'https://your-site.webflow.io'`).
