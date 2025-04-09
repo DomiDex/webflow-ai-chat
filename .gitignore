@@ -1,0 +1,27 @@
+# Dependency directories
+node_modules/
+
+# Netlify build + local development output/state
+.netlify/
+netlify/functions/dist/
+
+# Environment variables - DO NOT COMMIT SECRET KEYS!
+.env
+.env.*
+!.env.example # Allows committing an example env file if you create one
+
+# Log files
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# Optional: OS-generated files
+.DS_Store
+Thumbs.db
+
+# Optional: Editor/IDE directories
+.vscode/
+.idea/
+
+# Optional: TypeScript build info
+*.tsbuildinfo
