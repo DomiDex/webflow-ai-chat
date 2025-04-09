@@ -12,10 +12,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^22.14.0",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@netlify/functions": "^2.6.0",
-    "@google-ai/generativelanguage": "^0.3.0"
+    "@google-ai/generativelanguage": "^3.1.0",
+    "@netlify/functions": "^2.6.0"
   }
 }
