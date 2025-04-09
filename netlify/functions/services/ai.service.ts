@@ -8,6 +8,13 @@ import {
 const apiKey = process.env.GOOGLE_AI_API_KEY;
 const modelName = 'gemini-1.5-flash'; // Or "gemini-pro", "gemini-1.5-pro-latest" etc.
 
+// --- Debugging Start ---
+console.log(
+  '[AI Service] Retrieved API Key (first 5 chars):',
+  apiKey?.substring(0, 5)
+);
+// --- Debugging End ---
+
 if (!apiKey) {
   console.error('GOOGLE_AI_API_KEY environment variable is not set.');
   // Optionally throw an error during initialization if the key is critical
@@ -43,6 +50,11 @@ const model = genAI
       // generationConfig: { maxOutputTokens: 200 },
     })
   : null;
+
+// --- Debugging Start ---
+console.log('[AI Service] genAI object initialized:', !!genAI); // Log true if initialized, false otherwise
+console.log('[AI Service] model object initialized:', !!model); // Log true if initialized, false otherwise
+// --- Debugging End ---
 
 /**
  * Sends the user's message to the configured Google AI model and returns the response.

@@ -3,6 +3,12 @@ import { parseInput } from './utils/input-parser';
 import { generateAIResponse } from './services/ai.service';
 import { formatResponse } from './utils/response-formatter';
 
+// Define common headers for all responses
+const baseHeaders = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*', // Adjust for production!
+};
+
 /**
  * Handles incoming POST requests from Webflow, parses the user message,
  * gets a response from the AI service, formats it, and returns it.
@@ -16,7 +22,8 @@ const handler: Handler = async (
     return {
       statusCode: 405,
       body: JSON.stringify({ error: 'Method Not Allowed' }),
-      headers: { Allow: 'POST' },
+      // Include base headers and the specific Allow header
+      headers: { ...baseHeaders, Allow: 'POST' },
     };
   }
 
@@ -35,6 +42,8 @@ const handler: Handler = async (
           error:
             "Invalid input: 'user-message' not found or empty in request body.data",
         }),
+        // Use base headers
+        headers: baseHeaders,
       };
     }
 
@@ -49,7 +58,8 @@ const handler: Handler = async (
     return {
       statusCode: 200,
       body: JSON.stringify({ response: formattedResponse }),
-      headers: { 'Content-Type': 'application/json' },
+      // Use base headers
+      headers: baseHeaders,
     };
   } catch (error: unknown) {
     // 7. Handle potential errors (parsing, AI service call, etc.)
@@ -65,6 +75,8 @@ const handler: Handler = async (
         error: 'Internal Server Error',
         details: errorMessage,
       }),
+      // Use base headers
+      headers: baseHeaders,
     };
   }
 };

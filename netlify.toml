@@ -8,6 +8,5 @@
   # publish = "public"
 
 [dev]
-  command = "npm run dev" # Or yarn dev if you use yarn
   functions = "netlify/functions"
   port = 8888 
